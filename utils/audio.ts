@@ -1,0 +1,53 @@
+// Decodes base64 string to Uint8Array
+export function decodeBase64(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// Encodes Uint8Array to base64 string
+export function encodeBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+// Decodes raw PCM data to AudioBuffer
+export async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+
+// Converts Float32 audio data (from Web Audio API) to Int16 PCM (for Gemini)
+export function float32To16BitPCM(float32Arr: Float32Array): ArrayBuffer {
+  const buffer = new ArrayBuffer(float32Arr.length * 2);
+  const view = new DataView(buffer);
+  for (let i = 0; i < float32Arr.length; i++) {
+    // Clamp the value between -1 and 1
+    const s = Math.max(-1, Math.min(1, float32Arr[i]));
+    // Convert to 16-bit integer
+    view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true); // true for little-endian
+  }
+  return buffer;
+}

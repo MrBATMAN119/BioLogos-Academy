@@ -1,0 +1,7 @@
+{
+  "name": "BioLogos Academy Voice",
+  "description": "Voice assistant for BioLogos Academy: Torah-observant, Messianic perspective on science, scripture, and apologetics.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
